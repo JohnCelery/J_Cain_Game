@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  password String?
+  name     String?
+  games    GameUser[]
+  statements Statement[]
+  votes    Vote[]
+  scores   Score[]
+}
+
+model Game {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  hostId    String
+  host      User        @relation(fields: [hostId], references: [id])
+  rounds    Round[]
+  players   GameUser[]
+}
+
+model GameUser {
+  gameId String
+  userId String
+  game   Game @relation(fields: [gameId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+  @@id([gameId, userId])
+}
+
+model Round {
+  id            String     @id @default(cuid())
+  gameId        String
+  storytellerId String
+  statement     Statement?
+  votes         Vote[]
+  game          Game       @relation(fields: [gameId], references: [id])
+  storyteller   User       @relation(fields: [storytellerId], references: [id])
+}
+
+model Statement {
+  id      String   @id @default(cuid())
+  roundId String   @unique
+  content String   @db.VarChar(280)
+  truth   Boolean
+  round   Round    @relation(fields: [roundId], references: [id])
+}
+
+model Vote {
+  id      String @id @default(cuid())
+  roundId String
+  userId  String
+  truth   Boolean
+  round   Round  @relation(fields: [roundId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
+  @@unique([roundId, userId])
+}
+
+model Score {
+  id     String @id @default(cuid())
+  userId String
+  gameId String
+  points Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id])
+  @@unique([userId, gameId])
+}
