@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: j_cain_game
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+  web:
+    build: .
+    command: pnpm start
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/j_cain_game
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: changeme-to-32-chars
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
